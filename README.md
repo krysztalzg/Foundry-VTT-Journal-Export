@@ -1,4 +1,4 @@
-# Foundry VTT Journal Export 0.1
+# Foundry VTT Journal Export 0.2
 Python script for exporting Journal entries from Foundry VTT, it will create proper directory hierarchy and copy used image assets.
 
 ## Usage
@@ -19,3 +19,7 @@ This will export all Journal Entries with default permission set to Observer or 
    │  └─ BBEG.md
    └─ Message from friend.md
 ```
+
+## Known issues/future plans
+- Sorting of entries in the README files.
+- converting `@JournalEntry` redirects into proper links
