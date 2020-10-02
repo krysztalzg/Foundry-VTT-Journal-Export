@@ -101,11 +101,11 @@ def create_journal_folders(directories, entries, pathToWorldDirectory):
     
 
 def create_journal_files(entries, directories):
+    [create_entry_path(e, directories) for e in entries]
     for entry in entries:
-        directory = [d for d in directories if d.id == entry.directory][0]
-        entry.path = '{}{}{}.md'.format(directory.path, os.path.sep, entry.name)
         try:
             print(f'Creating Journal entry `{entry.path}`... ', end='')
+            entry = convert_journal_link(entry, entries, directories)
             with open(entry.path, 'w', encoding='utf8') as f:
                 f.write(entry.content)
             print('Created')
@@ -163,12 +163,31 @@ def create_directory_path(directory, directories, root_folder_path):
         parent_directory = [d for d in directories if d.id == directory.parent][0]
         path = '{}{}{}'.format(parent_directory.name, os.path.sep, path)
     directory.path = '{}{}{}'.format(root_folder_path, os.path.sep, path)
-    return directory.path
+
+def create_entry_path(entry, directories):
+    try:
+        directory = [d for d in directories if d.id == entry.directory][0]
+        entry.path = '{}{}{}.md'.format(directory.path, os.path.sep, entry.name)
+    except:
+        print(f'Failed | {sys.exc_info()}')
 
 def safe_path(path):
     for separator in ['\\', '/']:
         path = path.replace(separator, os.path.sep)
     return path
+
+def convert_journal_link(entry, entries, directories):
+    journal_links = re.findall(r'@JournalEntry\[(.*?)]{(.*?)}', entry.content)
+    if len(journal_links) == 0: return entry
+    for (id, name) in journal_links:
+        try:
+            linked_entry = [entry for entry in entries if entry.id == id][0]
+            path_to_linked_entry = '/' + '/'.join(linked_entry.path.split(os.path.sep)[2:])
+            entry.content = entry.content.replace('@JournalEntry[{}]{{{}}}'.format(id, name), '<a href="{}">{}</a>'.format(parse.quote(path_to_linked_entry), name))
+        except: 
+            print(f'Failed | {sys.exc_info()}')
+            continue
+    return entry
 
 # Main
 
