@@ -16,10 +16,10 @@ class JournalEntry:
 
 # Core
 
-def run_export(pathToWorldDirectory):
+def run_export(pathToWorldDirectory, shouldBeSorted):
     print(f'Running Journal Exporter for {pathToWorldDirectory}')
-    directories = load_directories_hierarchy(pathToWorldDirectory)
-    entries = load_journal_entries(pathToWorldDirectory)
+    directories = load_directories_hierarchy(pathToWorldDirectory, shouldBeSorted)
+    entries = load_journal_entries(pathToWorldDirectory, shouldBeSorted)
     directories = [d for d in directories if d.id in [e.directory for e in entries] + [d.parent for d in directories]]
     create_journal_folders(directories, entries, pathToWorldDirectory)
     create_journal_files(entries, directories)
@@ -28,21 +28,25 @@ def run_export(pathToWorldDirectory):
 
 # DB file readers.
 
-def load_directories_hierarchy(pathToWorldDirectory):
+def load_directories_hierarchy(pathToWorldDirectory, shouldBeSorted):
     print('Loading Journal Directories from `folders.db`...')
     foldersdb_path = pathToWorldDirectory + safe_path('\\data\\folders.db')
     with open(foldersdb_path, 'r', encoding='utf8') as f:
         directories = [parse_folder_entry(line) for line in f if line]
     print('Journal Directories loaded.')
-    return sorted([directory for directory in directories if directory], key=lambda d: d.name)
+    loaded_directories = [directory for directory in directories if directory]
+    if shouldBeSorted: loaded_directories.sort(key=lambda d: d.name)
+    return loaded_directories
 
-def load_journal_entries(pathToWorldDirectory):
+def load_journal_entries(pathToWorldDirectory, shouldBeSorted):
     print('Loading Journal Entries from `journal.db`.')
     journaldb_path = pathToWorldDirectory + safe_path('\\data\\journal.db')
     with open(journaldb_path, 'r', encoding='utf8') as f:
         entries = [parse_journal_entry(line) for line in f]
     print('Journal Entries loaded.')
-    return sorted([entry for entry in entries if entry], key=lambda e: e.name)
+    loaded_entries = [entry for entry in entries if entry]
+    if shouldBeSorted: loaded_entries.sort(key=lambda e: e.name)
+    return loaded_entries
 
 # DB file parsers.
 
@@ -171,21 +175,24 @@ def safe_path(path):
 def main():
     print('Journal Export by Thandulfan')
     pathToWorldDirectory = ''
+    shouldBeSorted = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:] ,'help:h', ['world=',])
+        opts, args = getopt.getopt(sys.argv[1:] ,'help:h', ['world=','sorted'])
     except:
         print(f'Unable to parse arguments  | {sys.exc_info()}')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ['-h', '-help']:
-            print('python journal_export.py -world PATH_TO_WORLD_DIRECTORY')
+            print('python journal_export.py -world PATH_TO_WORLD_DIRECTORY [--sorted]')
             sys.exit()
         if opt == '--world':
             pathToWorldDirectory = safe_path(arg)
+        if opt == '--sorted':
+            shouldBeSorted = True
     if pathToWorldDirectory == '':
         print('ERROR: No world directory provided.')
         sys.exit(2)
-    run_export(pathToWorldDirectory)
+    run_export(pathToWorldDirectory, shouldBeSorted)
 
 if __name__ == '__main__' :
     main()  
