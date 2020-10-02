@@ -34,7 +34,7 @@ def load_directories_hierarchy(pathToWorldDirectory):
     with open(foldersdb_path, 'r', encoding='utf8') as f:
         directories = [parse_folder_entry(line) for line in f if line]
     print('Journal Directories loaded.')
-    return [directory for directory in directories if directory]
+    return sorted([directory for directory in directories if directory], key=lambda d: d.name)
 
 def load_journal_entries(pathToWorldDirectory):
     print('Loading Journal Entries from `journal.db`.')
@@ -42,7 +42,7 @@ def load_journal_entries(pathToWorldDirectory):
     with open(journaldb_path, 'r', encoding='utf8') as f:
         entries = [parse_journal_entry(line) for line in f]
     print('Journal Entries loaded.')
-    return [entry for entry in  entries if entry]
+    return sorted([entry for entry in entries if entry], key=lambda e: e.name)
 
 # DB file parsers.
 
